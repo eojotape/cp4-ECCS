@@ -3,30 +3,24 @@
 #include "HTTPClient.h"
 #include <DHT.h>
 
-char ssid[] = ""; // Replace with your Wi-Fi SSID
-char pass[] = ""; // Replace with your Wi-Fi password
+#define DHTPIN 13     // pino do sensor conectado
+#define DHTTYPE DHT11   // modelo do sensor usado
+
+DHT dht(DHTPIN, DHTTYPE);
+
+char ssid[] = "Pedro"; // Replace with your Wi-Fi SSID
+char pass[] = "Pedro12345"; // Replace with your Wi-Fi password
 char serverAddress[] = "https://api.tago.io/data"; // TagoIO API endpoint
 char contentHeader[] = "application/json"; // Content type for HTTP request
 char tokenHeader[] = "74123ea9-6948-4f20-840d-5c54aab14355"; // Your TagoIO token
 HTTPClient client; // Initialize an instance of the HTTP client
 
-const int LDR_PIN = A0;
-const int GREEN_LED_PIN = 2;
-const int YELLOW_LED_PIN = 3;
-const int RED_LED_PIN = 4;
-const int BUZZER_PIN = 8;
-const int ALERT_THRESHOLD = 200; //isso é quanto o sensor capta de luminosidade
+const int LDR_PIN = 12;
 
 unsigned long previousTime = 0;
 int buzzerState = LOW;
 
-void setup() {
-  pinMode(GREEN_LED_PIN, OUTPUT);
-  pinMode(YELLOW_LED_PIN, OUTPUT);
-  pinMode(RED_LED_PIN, OUTPUT);
-  pinMode(BUZZER_PIN, OUTPUT);
-  Serial.begin(9600);
-}
+
 
 void init_wifi() {
   Serial.println("Connecting to WiFi");
@@ -40,34 +34,25 @@ void init_wifi() {
   Serial.println(WiFi.localIP());
 }
 
-
-
 void loop() {
   int lightValue = analogRead(LDR_PIN);
-  Serial.print("Luminosidade: "); //report no monitor serial
-  Serial.println(lightValue);
-
-  if (lightValue >= 350  ) { //969 é o equivalente a máxima luminosidade no tinkercad, na vida real varia e precisamos ajustar o valor conforme necessário. A leitura deve ser feita pelo 
-    digitalWrite(GREEN_LED_PIN, HIGH);
-    digitalWrite(YELLOW_LED_PIN, LOW);
-    digitalWrite(RED_LED_PIN, LOW);
-  
-  }
-  else if (lightValue > ALERT_THRESHOLD) { //alert_threshold indica o valor do intervalo de luminosidade, nesse caso se for > que 50, a luz amarela se acende
-    digitalWrite(GREEN_LED_PIN, LOW);
-    digitalWrite(YELLOW_LED_PIN, HIGH);
-    digitalWrite(RED_LED_PIN, LOW);
     
-  } 
-  else { 
-    digitalWrite(GREEN_LED_PIN, LOW); //se qualquer coisa fora das condições acima ocorrer, o verde se acende, ou seja, o verde só acende se o valor ideal de luminosidade estiver definido.
-    digitalWrite(YELLOW_LED_PIN, LOW);
-    digitalWrite(RED_LED_PIN, HIGH);
-    delay(3000);
-    digitalWrite(BUZZER_PIN, HIGH);
-    delay(3000);
-    digitalWrite(BUZZER_PIN, LOW);
+     float tempC = dht.readTemperature(); // leitura da temperatura em Celsius
+  float hum = dht.readHumidity(); // leitura da umidade relativa do ar
+  Serial.print("Temperatura: ");
+  Serial.print(tempC);
+  Serial.print("°C, Umidade: ");
+  Serial.print(hum);
+  Serial.println("%");
+  delay(2000);
+    
   }
+
+void setup() {
+  Serial.begin(9600);
+  dht.begin();
+
   
   delay(100); //quanto tempo entre cada leitura do monitor serial em ms
 }
+
